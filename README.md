@@ -138,5 +138,5 @@ npm run build
 
 👩‍💻 Author
 
-Shreya Roy
+Sujoy Sarkar
 Internship Assignment – Buyer Lead Management System
