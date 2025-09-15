@@ -1,73 +1,142 @@
-# Welcome to your Lovable project
+# 🏡 Lead Intake Pro
 
-## Project info
+A **Buyer Lead Management System** built with **React, TypeScript, Supabase, Zod, TailwindCSS, and shadcn-ui**.  
+This project was developed as part of an internship assignment to demonstrate skills in **frontend + backend integration, validation, authentication, and CRUD operations**.
 
-**URL**: https://lovable.dev/projects/dd9e21e1-aa9b-43b4-b67d-5f10e2c33e5c
+---
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+- 🔑 **Authentication** with Supabase (magic link or demo login)
+- 📝 **Add new buyer leads** with full form validation (Zod + react-hook-form)
+- 📋 **View all leads** in a responsive list with filtering and search
+- ✏️ **Edit & update buyer details** (with history tracking)
+- 🗑️ **Soft delete leads** (mark inactive without permanent removal)
+- 📊 **Filter, search, and sort** buyers by city, budget, property type, etc.
+- 📈 **Pagination** for large lead datasets
+- 📥 **CSV import/export** for bulk data handling
+- ⚡ **Form validation** with Zod (strong typing + instant feedback)
+- 🎨 **Responsive UI** with Tailwind CSS + shadcn-ui
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dd9e21e1-aa9b-43b4-b67d-5f10e2c33e5c) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend:** React (Vite + TypeScript)
+- **UI Framework:** Tailwind CSS + shadcn-ui
+- **Database & Auth:** Supabase
+- **Validation:** Zod + react-hook-form
+- **State Management:** React Context API
+- **Hosting/Scaffolding:** Lovable.dev
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 📂 Folder Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+src/
+├── components/
+│   ├── BuyerForm.tsx        # Add/Edit buyer form
+│   ├── BuyerList.tsx        # Table/list of buyers
+│   ├── Layout.tsx           # App layout
+│   ├── ProtectedRoute.tsx   # Auth-protected routes
+│   └── ui/                  # UI components (shadcn-ui)
+│
+├── contexts/
+│   └── AuthContext.tsx      # Supabase auth provider
+│
+├── hooks/
+│   ├── use-mobile.tsx
+│   └── use-toast.ts
+│
+├── integrations/
+│   └── supabase/
+│       ├── client.ts        # Supabase client setup
+│       └── types.ts         # DB types
+│
+├── lib/
+│   └── utils.ts             # Utility functions
+│
+├── pages/
+│   ├── AuthPage.tsx
+│   ├── BuyerDetailPage.tsx
+│   ├── BuyersPage.tsx
+│   ├── Index.tsx
+│   ├── NewBuyerPage.tsx
+│   └── NotFound.tsx
+│
+├── types/
+│   └── buyer.ts             # Type definitions
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Getting Started
+1. Clone the Repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. Install Dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Configure Environment Variables
+
+Create a .env file in the project root:
+
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+
+4. Start Development Server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The app will be available at http://localhost:5173
 
-**Use GitHub Codespaces**
+🔑 Authentication
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Magic Link login (via Supabase)
 
-## What technologies are used for this project?
+Demo login option for quick access (if enabled)
 
-This project is built with:
+📊 Database Schema (Supabase)
+-- Buyers table
+create table buyers (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  email text,
+  phone text,
+  city text,
+  property_type text,
+  bhk int,
+  purpose text,
+  budget_min int,
+  budget_max int,
+  timeline text,
+  source text,
+  status text,
+  notes text,
+  tags text[],
+  owner_id uuid references auth.users(id),
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+-- Buyer history table
+create table buyer_history (
+  id uuid primary key default gen_random_uuid(),
+  buyer_id uuid references buyers(id) on delete cascade,
+  changes jsonb,
+  changed_at timestamp default now()
+);
 
-## How can I deploy this project?
+🧪 Testing
 
-Simply open [Lovable](https://lovable.dev/projects/dd9e21e1-aa9b-43b4-b67d-5f10e2c33e5c) and click on Share -> Publish.
+Run unit tests (e.g., budget validator) with:
 
-## Can I connect a custom domain to my Lovable project?
+npm test
 
-Yes, you can!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+npm run build
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+👩‍💻 Author
+
+Shreya Roy
+Internship Assignment – Buyer Lead Management System

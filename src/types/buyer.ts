@@ -9,45 +9,76 @@ export const Timeline = z.enum(["0-3m", "3-6m", ">6m", "Exploring"]);
 export const Source = z.enum(["Website", "Referral", "Walk-in", "Call", "Other"]);
 export const Status = z.enum(["New", "Qualified", "Contacted", "Visited", "Negotiation", "Converted", "Dropped"]);
 
-// Validation schema for buyer form
-export const BuyerFormSchema = z.object({
-  fullName: z.string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(80, "Full name must not exceed 80 characters"),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phone: z.string()
-    .regex(/^\d{10,15}$/, "Phone number must be 10-15 digits"),
-  city: City,
-  propertyType: PropertyType,
-  bhk: BHK.optional(),
-  purpose: Purpose,
-  budgetMin: z.number().min(0, "Budget must be positive").optional(),
-  budgetMax: z.number().min(0, "Budget must be positive").optional(),
-  timeline: Timeline,
-  source: Source,
-  notes: z.string().max(1000, "Notes must not exceed 1000 characters").optional().or(z.literal("")),
-  tags: z.array(z.string()).optional(),
-}).refine((data) => {
-  // BHK is required for Apartment and Villa
-  if ((data.propertyType === "Apartment" || data.propertyType === "Villa") && !data.bhk) {
-    return false;
-  }
-  return true;
-}, {
-  message: "BHK is required for Apartment and Villa properties",
-  path: ["bhk"],
-}).refine((data) => {
-  // Budget max must be >= budget min when both are present
-  if (data.budgetMin && data.budgetMax && data.budgetMax < data.budgetMin) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Maximum budget must be greater than or equal to minimum budget",
-  path: ["budgetMax"],
-});
+// ✅ Utility preprocessors for form fields
+const preprocessNumber = (val: unknown) => {
+  if (val === "" || val === null || val === undefined) return undefined;
+  const num = Number(val);
+  return isNaN(num) ? undefined : num;
+};
 
-// TypeScript types
+const preprocessEmptyString = (val: unknown) => {
+  if (typeof val === "string" && val.trim() === "") return undefined;
+  return val;
+};
+
+// Validation schema for buyer form
+export const BuyerFormSchema = z
+  .object({
+    fullName: z
+      .string()
+      .min(2, "Full name must be at least 2 characters")
+      .max(80, "Full name must not exceed 80 characters"),
+
+    email: z
+      .preprocess(preprocessEmptyString, z.string().email("Invalid email address").optional()),
+
+    phone: z.string().regex(/^\d{10,15}$/, "Phone number must be 10-15 digits"),
+
+    city: City,
+    propertyType: PropertyType,
+    bhk: BHK.optional(),
+
+    purpose: Purpose,
+
+    budgetMin: z.preprocess(preprocessNumber, z.number().min(0, "Budget must be positive").optional()),
+    budgetMax: z.preprocess(preprocessNumber, z.number().min(0, "Budget must be positive").optional()),
+
+    timeline: Timeline,
+    source: Source,
+
+    notes: z
+      .preprocess(preprocessEmptyString, z.string().max(1000, "Notes must not exceed 1000 characters").optional()),
+
+    tags: z.array(z.string()).default([]),
+  })
+  .refine(
+    (data) => {
+      // ✅ BHK is required for Apartment and Villa
+      if ((data.propertyType === "Apartment" || data.propertyType === "Villa") && !data.bhk) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "BHK is required for Apartment and Villa properties",
+      path: ["bhk"],
+    }
+  )
+  .refine(
+    (data) => {
+      // ✅ Budget max must be >= budget min when both exist
+      if (data.budgetMin && data.budgetMax && data.budgetMax < data.budgetMin) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Maximum budget must be greater than or equal to minimum budget",
+      path: ["budgetMax"],
+    }
+  );
+
+// ✅ TypeScript types
 export type BuyerFormData = z.infer<typeof BuyerFormSchema>;
 export type CityType = z.infer<typeof City>;
 export type PropertyTypeType = z.infer<typeof PropertyType>;
@@ -57,7 +88,7 @@ export type TimelineType = z.infer<typeof Timeline>;
 export type SourceType = z.infer<typeof Source>;
 export type StatusType = z.infer<typeof Status>;
 
-// Full buyer type (with additional fields)
+// ✅ Full buyer type (for DB records)
 export interface Buyer extends BuyerFormData {
   id: string;
   status: StatusType;

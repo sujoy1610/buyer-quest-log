@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { Users, Plus, Download, Upload, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { importCSV, exportCSV } from "@/lib/csv";
+import {toast} from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client";
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,23 +24,59 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const handleImportCSV = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        // TODO: Implement CSV import functionality
-        console.log('Importing CSV:', file.name);
-      }
-    };
-    input.click();
-  };
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".csv";
+  input.onchange = async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      try {
+        const { errors, inserted } = await importCSV(file);
 
-  const handleExportCSV = () => {
-    // TODO: Implement CSV export functionality
-    console.log('Exporting CSV');
+        if (errors.length) {
+          console.table(errors); // Debug, later show in UI
+          toast({
+            title: "Import completed with errors",
+            description: `${inserted} rows inserted, ${errors.length} errors`,
+          });
+        } else {
+          toast({
+            title: "Import successful",
+            description: `${inserted} rows inserted successfully`,
+          });
+        }
+      } catch (err: any) {
+        toast({
+          title: "Import failed",
+          description: err.message,
+          variant: "destructive",
+        });
+      }
+    }
   };
+  input.click();
+};
+
+
+
+ const handleExportCSV = async () => {
+  try {
+    const { data, error } = await supabase.from("buyers").select("*");
+    if (error) throw error;
+
+    exportCSV(data || []);
+    toast({
+      title: "Export successful",
+      description: `${data?.length || 0} rows exported`,
+    });
+  } catch (err: any) {
+    toast({
+      title: "Export failed",
+      description: err.message,
+      variant: "destructive",
+    });
+  }
+};
 
   const navigation = [
     { name: "Buyers", href: "/buyers", icon: Users },
